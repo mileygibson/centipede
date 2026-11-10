@@ -532,7 +532,7 @@
       bestValue.textContent = String(best).padStart(2, "0");
 
       function currentLevel() {
-        return Math.floor(score / 5) + 1;
+        return (Math.floor(score / 5) % levelNames.length) + 1;
       }
 
       function stepDelay() {
