@@ -306,6 +306,12 @@
       color: #adb7a6;
       font: 11px/1.2 "Courier New", monospace;
     }
+    .level-number {
+      flex: 0 0 18px;
+      color: #788772;
+      text-align: right;
+    }
+    .level-roster li[aria-current="step"] .level-number { color: #d3e99e; }
     .level-roster li::before {
       width: 5px;
       height: 5px;
@@ -456,6 +462,12 @@
         </div>
 
         <div class="divider"></div>
+        <div class="dpad" aria-label="Touch controls">
+          <button type="button" data-dir="up" aria-label="Move up">↑</button>
+          <button type="button" data-dir="left" aria-label="Move left">←</button>
+          <button type="button" data-dir="down" aria-label="Move down">↓</button>
+          <button type="button" data-dir="right" aria-label="Move right">→</button>
+        </div>
         <h2 class="roster-heading">Level roll call</h2>
         <ol class="level-roster" id="levelRoster" aria-label="Names for each level"></ol>
 
@@ -467,13 +479,6 @@
           <div class="control-row"><span>Take a breather</span><span class="key-set"><kbd>Space</kbd></span></div>
         </div>
         <p class="control-tip">Keep your head away from your tail. The garden loops around, so there are no dead ends.</p>
-
-        <div class="dpad" aria-label="Touch controls">
-          <button type="button" data-dir="up" aria-label="Move up">↑</button>
-          <button type="button" data-dir="left" aria-label="Move left">←</button>
-          <button type="button" data-dir="down" aria-label="Move down">↓</button>
-          <button type="button" data-dir="right" aria-label="Move right">→</button>
-        </div>
       </aside>
     </div>
   </main>
@@ -502,9 +507,14 @@
         "Kaz", "Kenzie", "Kim", "Kylam", "Niamh", "Roz", "Sam", "Tom", "Andrew", "Asin"
       ];
 
-      levelNames.forEach((name) => {
+      levelNames.forEach((name, index) => {
         const entry = document.createElement("li");
-        entry.textContent = name;
+        const number = document.createElement("span");
+        number.className = "level-number";
+        number.textContent = String(index + 1).padStart(2, "0");
+        const label = document.createElement("span");
+        label.textContent = name;
+        entry.append(number, label);
         levelRoster.append(entry);
       });
       const levelEntries = levelRoster.querySelectorAll("li");
