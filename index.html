@@ -370,17 +370,19 @@
       .level-roster { max-height: 220px; }
       .dpad {
         display: grid;
-        grid-template: 43px 43px / 43px 43px 43px;
-        justify-content: center;
-        gap: 5px;
+        grid-template: 64px 64px / 64px 64px 64px;
+        justify-content: start;
+        gap: 8px;
       }
       .dpad button {
+        min-width: 64px;
+        min-height: 64px;
         border: 1px solid #53634b;
         border-radius: 5px;
         color: var(--ink);
         background: #2b3a2d;
         cursor: pointer;
-        font-size: 17px;
+        font-size: 27px;
         touch-action: manipulation;
       }
       .dpad button:active { color: #1c271a; background: var(--acid); }
