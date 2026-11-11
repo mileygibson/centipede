@@ -515,9 +515,9 @@
       const progressBar = document.querySelector("[role='progressbar']");
       const levelRoster = document.getElementById("levelRoster");
       const levelNames = [
-        "Zoe", "Andie", "Ady", "Audrey", "Bobby", "Brendan", "Brodie", "Cathie", "Cienna", "Dave",
-        "Betta", "Emily", "Genna", "Geoff", "Gracie", "Harvey", "Holly", "Jenna", "Joel", "Jo",
-        "Kaz", "Kenzie", "Kim", "Kylam", "Niamh", "Roz", "Sam", "Tom", "Andrew", "Asin"
+        "Jo", "Zoe", "Ady", "Kaz", "Kim", "Roz", "Sam", "Tom", "Dave", "Joel",
+        "Asin", "Andie", "Bobby", "Betta", "Emily", "Genna", "Geoff", "Holly", "Jenna", "Kylam",
+        "Niamh", "Audrey", "Brodie", "Cathie", "Cienna", "Gracie", "Harvey", "Kenzie", "Andrew", "Brendan"
       ];
       const produceByLevel = [
         "🍓", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍈", "🍒",
@@ -568,6 +568,7 @@
       let foodTarget = 0;
       let score = 0;
       let level = 1;
+      let pendingGrowth = 0;
       let best = Number(localStorage.getItem("centipedeClubBest") || 0);
       let running = false;
       let ended = false;
@@ -661,6 +662,7 @@
         nextDirection = direction;
         score = 0;
         level = 1;
+        pendingGrowth = 0;
         ended = false;
         setupLevel();
         draw();
@@ -734,10 +736,15 @@
           food.splice(foodIndex, 1);
           if (food.length === 0) {
             level = (level % levelNames.length) + 1;
+            pendingGrowth += 2;
             setupLevel();
           } else {
             updateHud();
           }
+        }
+
+        if (pendingGrowth > 0) {
+          pendingGrowth -= 1;
         } else {
           centipede.pop();
         }
