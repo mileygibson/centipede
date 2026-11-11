@@ -447,14 +447,14 @@
           <div class="game-overlay" id="overlay">
             <p class="overlay-kicker" id="overlayKicker">Ready when you are</p>
             <h2 class="overlay-title" id="overlayTitle">Take a little lap</h2>
-            <p class="overlay-copy" id="overlayCopy">Guide your centipede to the berries. The more it munches, the quicker it goes.</p>
+            <p class="overlay-copy" id="overlayCopy">Eat every piece of fruit spelling the level name to move on. New levels get faster.</p>
             <button class="primary-button" id="startButton" type="button">Start game</button>
           </div>
         </div>
 
         <div class="board-footer">
           <span><strong>Wrap around</strong> the garden edges</span>
-          <span>Every 5 bites = faster feet</span>
+          <span>Clear the word to level up</span>
           <button class="pause-button" id="pauseButton" type="button" aria-label="Pause game" title="Pause game" disabled><span aria-hidden="true">Ⅱ</span></button>
         </div>
       </section>
@@ -464,10 +464,10 @@
         <div class="level-card">
           <p class="level-card-label">Current pace</p>
           <p class="level-card-value" id="paceValue">Easy does it</p>
-          <div class="progress-track" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+          <div class="progress-track" role="progressbar" aria-label="Food left in this level" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
             <div class="progress-fill" id="progressFill"></div>
           </div>
-          <p class="progress-note"><span id="progressText">0 of 5 snacks</span><span>next level</span></p>
+          <p class="progress-note"><span id="progressText">Food loading</span><span>left to eat</span></p>
         </div>
 
         <div class="divider"></div>
@@ -516,7 +516,7 @@
       const levelRoster = document.getElementById("levelRoster");
       const levelNames = [
         "Zoe", "Andie", "Ady", "Audrey", "Bobby", "Brendan", "Brodie", "Cathie", "Cienna", "Dave",
-        "Elisabetta", "Emily", "Genna", "Geoff", "Gracie", "Harvey", "Holly", "Jenna", "Joel", "Jo",
+        "Betta", "Emily", "Genna", "Geoff", "Gracie", "Harvey", "Holly", "Jenna", "Joel", "Jo",
         "Kaz", "Kenzie", "Kim", "Kylam", "Niamh", "Roz", "Sam", "Tom", "Andrew", "Asin"
       ];
       const produceByLevel = [
@@ -524,6 +524,21 @@
         "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🫐", "🫒", "🥑", "🫛",
         "🥦", "🥕", "🌽", "🌶️", "🥒", "🍆", "🧄", "🧅", "🥔", "🎃"
       ];
+      const letterShapes = {
+        A: ["010", "101", "111", "101", "101"], B: ["110", "101", "110", "101", "110"],
+        C: ["011", "100", "100", "100", "011"], D: ["110", "101", "101", "101", "110"],
+        E: ["111", "100", "110", "100", "111"], F: ["111", "100", "110", "100", "100"],
+        G: ["011", "100", "101", "101", "011"], H: ["101", "101", "111", "101", "101"],
+        I: ["111", "010", "010", "010", "111"], J: ["001", "001", "001", "101", "010"],
+        K: ["101", "101", "110", "101", "101"], L: ["100", "100", "100", "100", "111"],
+        M: ["101", "111", "111", "101", "101"], N: ["101", "111", "111", "111", "101"],
+        O: ["010", "101", "101", "101", "010"], P: ["110", "101", "110", "100", "100"],
+        Q: ["010", "101", "101", "111", "011"], R: ["110", "101", "110", "101", "101"],
+        S: ["011", "100", "010", "001", "110"], T: ["111", "010", "010", "010", "010"],
+        U: ["101", "101", "101", "101", "111"], V: ["101", "101", "101", "101", "010"],
+        W: ["101", "101", "111", "111", "101"], X: ["101", "101", "010", "101", "101"],
+        Y: ["101", "101", "010", "010", "010"], Z: ["111", "001", "010", "100", "111"]
+      };
 
       levelNames.forEach((name, index) => {
         const entry = document.createElement("li");
@@ -550,7 +565,9 @@
       let direction;
       let nextDirection;
       let food;
+      let foodTarget = 0;
       let score = 0;
+      let level = 1;
       let best = Number(localStorage.getItem("centipedeClubBest") || 0);
       let running = false;
       let ended = false;
@@ -560,7 +577,7 @@
       bestValue.textContent = String(best).padStart(2, "0");
 
       function currentLevel() {
-        return (Math.floor(score / 5) % levelNames.length) + 1;
+        return level;
       }
 
       function stepDelay() {
@@ -577,7 +594,7 @@
 
       function updateHud() {
         const level = currentLevel();
-        const withinLevel = score % 5;
+        const eaten = foodTarget - food.length;
         scoreValue.textContent = String(score).padStart(2, "0");
         levelValue.textContent = `${String(level).padStart(2, "0")} ${levelNames[level - 1]}`;
         levelEntries.forEach((entry, index) => {
@@ -588,21 +605,50 @@
           }
         });
         paceValue.textContent = paceName();
-        progressFill.style.width = `${withinLevel * 20}%`;
-        progressText.textContent = `${withinLevel} of 5 snacks`;
-        progressBar.setAttribute("aria-valuenow", String(withinLevel));
+        progressFill.style.width = `${Math.round(eaten / foodTarget * 100)}%`;
+        progressText.textContent = `${food.length} ${food.length === 1 ? "piece" : "pieces"} left`;
+        progressBar.setAttribute("aria-valuemax", String(foodTarget));
+        progressBar.setAttribute("aria-valuenow", String(food.length));
       }
 
-      function placeFood() {
-        const openCells = [];
-        for (let y = 0; y < cells; y += 1) {
-          for (let x = 0; x < cells; x += 1) {
-            if (!centipede.some((segment) => segment.x === x && segment.y === y)) {
-              openCells.push({ x, y });
+      function createFoodPattern() {
+        const name = levelNames[level - 1].toUpperCase();
+        const rows = name.match(/.{1,6}/g);
+        const patternWidth = Math.max(...rows.map((row) => row.length * 4 - 1));
+        const patternHeight = rows.length * 5 + (rows.length - 1) * 2;
+        const placements = [];
+
+        for (let top = 0; top <= cells - patternHeight; top += 1) {
+          for (let left = 0; left <= cells - patternWidth; left += 1) {
+            const pieces = [];
+            rows.forEach((row, rowIndex) => {
+              [...row].forEach((letter, letterIndex) => {
+                letterShapes[letter].forEach((shapeRow, y) => {
+                  [...shapeRow].forEach((pixel, x) => {
+                    if (pixel === "1") {
+                      pieces.push({
+                        x: left + letterIndex * 4 + x,
+                        y: top + rowIndex * 7 + y
+                      });
+                    }
+                  });
+                });
+              });
+            });
+
+            if (!pieces.some((piece) => centipede.some((segment) => segment.x === piece.x && segment.y === piece.y))) {
+              placements.push(pieces);
             }
           }
         }
-        food = openCells[Math.floor(Math.random() * openCells.length)];
+
+        return placements[Math.floor(Math.random() * placements.length)] || [];
+      }
+
+      function setupLevel() {
+        food = createFoodPattern();
+        foodTarget = food.length;
+        updateHud();
       }
 
       function resetGame() {
@@ -614,9 +660,9 @@
         direction = directions.right;
         nextDirection = direction;
         score = 0;
+        level = 1;
         ended = false;
-        placeFood();
-        updateHud();
+        setupLevel();
         draw();
       }
 
@@ -625,7 +671,7 @@
         if (kind === "start") {
           overlayKicker.textContent = "Ready when you are";
           overlayTitle.textContent = "Take a little lap";
-          overlayCopy.textContent = "Guide your centipede to the berries. The more it munches, the quicker it goes.";
+          overlayCopy.textContent = "Eat every piece of fruit spelling the level name to move on. New levels get faster.";
           startButton.textContent = "Start game";
         } else if (kind === "pause") {
           overlayKicker.textContent = "A quiet moment";
@@ -673,7 +719,8 @@
           x: (head.x + direction.x + cells) % cells,
           y: (head.y + direction.y + cells) % cells
         };
-        const eating = nextHead.x === food.x && nextHead.y === food.y;
+        const foodIndex = food.findIndex((piece) => piece.x === nextHead.x && piece.y === nextHead.y);
+        const eating = foodIndex !== -1;
         const bodyToCheck = eating ? centipede : centipede.slice(0, -1);
 
         if (bodyToCheck.some((segment) => segment.x === nextHead.x && segment.y === nextHead.y)) {
@@ -684,8 +731,13 @@
         centipede.unshift(nextHead);
         if (eating) {
           score += 1;
-          updateHud();
-          placeFood();
+          food.splice(foodIndex, 1);
+          if (food.length === 0) {
+            level = (level % levelNames.length) + 1;
+            setupLevel();
+          } else {
+            updateHud();
+          }
         } else {
           centipede.pop();
         }
@@ -779,7 +831,7 @@
           context.lineTo(canvas.width, position);
           context.stroke();
         }
-        if (food) drawFood(food.x, food.y);
+        if (food) food.forEach((piece) => drawFood(piece.x, piece.y));
         if (centipede) centipede.forEach(drawSegment);
       }
 
