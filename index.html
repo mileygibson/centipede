@@ -369,9 +369,20 @@
       .level-card { display: none; }
       .level-roster { max-height: 220px; }
       .dpad {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 8px;
+      }
+      .horizontal-pad {
         display: grid;
-        grid-template: 64px 64px / 64px 64px 64px;
-        justify-content: start;
+        grid-template-columns: 64px 64px;
+        gap: 8px;
+      }
+      .vertical-pad {
+        display: grid;
+        grid-template-rows: 64px 64px;
         gap: 8px;
       }
       .dpad button {
@@ -386,10 +397,6 @@
         touch-action: manipulation;
       }
       .dpad button:active { color: #1c271a; background: var(--acid); }
-      .dpad [data-dir="up"] { grid-area: 1 / 2; }
-      .dpad [data-dir="left"] { grid-area: 2 / 1; }
-      .dpad [data-dir="down"] { grid-area: 2 / 2; }
-      .dpad [data-dir="right"] { grid-area: 2 / 3; }
       .board-footer { font-size: 9px; }
     }
 
@@ -465,10 +472,14 @@
 
         <div class="divider"></div>
         <div class="dpad" aria-label="Touch controls">
-          <button type="button" data-dir="up" aria-label="Move up">↑</button>
-          <button type="button" data-dir="left" aria-label="Move left">←</button>
-          <button type="button" data-dir="down" aria-label="Move down">↓</button>
-          <button type="button" data-dir="right" aria-label="Move right">→</button>
+          <div class="horizontal-pad" aria-label="Horizontal movement">
+            <button type="button" data-dir="left" aria-label="Move left">←</button>
+            <button type="button" data-dir="right" aria-label="Move right">→</button>
+          </div>
+          <div class="vertical-pad" aria-label="Vertical movement">
+            <button type="button" data-dir="up" aria-label="Move up">↑</button>
+            <button type="button" data-dir="down" aria-label="Move down">↓</button>
+          </div>
         </div>
         <h2 class="roster-heading">Level roll call</h2>
         <ol class="level-roster" id="levelRoster" aria-label="Names for each level"></ol>
