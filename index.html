@@ -126,7 +126,7 @@
     #levelValue {
       overflow: hidden;
       color: var(--acid);
-      font-size: 12px;
+      font-size: 11px;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -426,7 +426,7 @@
             <span class="score-value" id="scoreValue">00</span>
           </div>
           <div class="score-item">
-            <span class="score-label">Level name</span>
+            <span class="score-label">Garden level</span>
             <span class="score-value" id="levelValue">Zoe</span>
           </div>
           <div class="score-item">
@@ -508,6 +508,11 @@
         "Elisabetta", "Emily", "Genna", "Geoff", "Gracie", "Harvey", "Holly", "Jenna", "Joel", "Jo",
         "Kaz", "Kenzie", "Kim", "Kylam", "Niamh", "Roz", "Sam", "Tom", "Andrew", "Asin"
       ];
+      const produceByLevel = [
+        "🍓", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍈", "🍒",
+        "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🫐", "🫒", "🥑", "🫛",
+        "🥦", "🥕", "🌽", "🌶️", "🥒", "🍆", "🧄", "🧅", "🥔", "🎃"
+      ];
 
       levelNames.forEach((name, index) => {
         const entry = document.createElement("li");
@@ -563,7 +568,7 @@
         const level = currentLevel();
         const withinLevel = score % 5;
         scoreValue.textContent = String(score).padStart(2, "0");
-        levelValue.textContent = levelNames[Math.min(level - 1, levelNames.length - 1)];
+        levelValue.textContent = `${String(level).padStart(2, "0")} ${levelNames[level - 1]}`;
         levelEntries.forEach((entry, index) => {
           if (index === Math.min(level - 1, levelEntries.length - 1)) {
             entry.setAttribute("aria-current", "step");
@@ -688,22 +693,36 @@
       function drawFood(x, y) {
         const centerX = x * cellSize + cellSize / 2;
         const centerY = y * cellSize + cellSize / 2;
-        context.save();
-        context.translate(centerX, centerY);
-        context.fillStyle = "#ff765e";
+        context.font = "18px 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(produceByLevel[currentLevel() - 1], centerX, centerY + 1);
+      }
+
+      function drawLegs(x, y, size, index) {
+        const centerX = x + size / 2;
+        const centerY = y + size / 2;
+        const horizontal = direction.x !== 0;
+        context.strokeStyle = index === 0 ? "#78934a" : "#668247";
+        context.lineWidth = 1.5;
+        context.lineCap = "round";
         context.beginPath();
-        context.arc(-2, 2, 7, 0, Math.PI * 2);
-        context.arc(3, 3, 6, 0, Math.PI * 2);
-        context.fill();
-        context.fillStyle = "#f1cf75";
-        context.beginPath();
-        context.ellipse(0, -5, 5, 2.5, -0.5, 0, Math.PI * 2);
-        context.fill();
-        context.fillStyle = "#b0d45d";
-        context.beginPath();
-        context.ellipse(5, -7, 3.5, 2, -0.7, 0, Math.PI * 2);
-        context.fill();
-        context.restore();
+
+        [-1, 1].forEach((pair) => {
+          [-1, 1].forEach((side) => {
+            const anchorX = centerX + (horizontal ? pair * 4 : side * size * 0.36);
+            const anchorY = centerY + (horizontal ? side * size * 0.36 : pair * 4);
+            const kneeX = centerX + (horizontal ? pair * 4 + pair * 1.5 : side * size * 0.5);
+            const kneeY = centerY + (horizontal ? side * size * 0.5 : pair * 4 + pair * 1.5);
+            const footX = kneeX + (horizontal ? pair * 2 : side * 2);
+            const footY = kneeY + (horizontal ? side * 2 : pair * 2);
+            context.moveTo(anchorX, anchorY);
+            context.lineTo(kneeX, kneeY);
+            context.lineTo(footX, footY);
+          });
+        });
+
+        context.stroke();
       }
 
       function drawSegment(segment, index) {
@@ -711,6 +730,7 @@
         const x = segment.x * cellSize + inset;
         const y = segment.y * cellSize + inset;
         const size = cellSize - inset * 2;
+        drawLegs(x, y, size, index);
         context.fillStyle = index === 0 ? "#c7ec70" : (index % 2 ? "#86b95b" : "#a5cf65");
         context.beginPath();
         context.roundRect(x, y, size, size, index === 0 ? 8 : 6);
